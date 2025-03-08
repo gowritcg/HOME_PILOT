@@ -21,20 +21,15 @@ string deltainsertquery = "";
 string sftpServer = FCTools.ScriptContext.Project.EnvironmentVariables.Get("SftpServer");
 string sftpUser = FCTools.ScriptContext.Project.EnvironmentVariables.Get("SftpUser");
 string sftpPassword = FCTools.ScriptContext.Project.EnvironmentVariables.Get("SftpPassword");
-string sftpPort = FCTools.ScriptContext.Project.EnvironmentVariables.Get("SftpPort");
 string sftpTargetFolder = FCTools.ScriptContext.Project.EnvironmentVariables.Get("SftpBUMasterDataTargetFolder");
 
 
 try 
 {
     //retrieve files from SFTP
-    using (var sftp = new SftpClient(sftpServer,22, sftpUser,sftpPassword))
+    using (var sftp = new SftpClient(sftpServer, sftpUser, sftpPassword))
     {
          sftp.Connect();
-        if (sftp.IsConnected == false)
-       {
-        FCTools.ShowMessage("SSH-client is not connected");
-          }
          var files = sftp.ListDirectory(sftpTargetFolder);//SFTP folder from where the file is to be download
          sftp.ChangeDirectory(sftpTargetFolder);
          foreach (var file in files)
@@ -116,7 +111,7 @@ try
                     //line = line.Replace("\",\",\"","\",\"");
                     
                     fields = parser.ReadFields();
-                    if (fields.Length != 10)
+                    if (fields.Length != 24)
                     {
                         FCTools.ShowMessage("Incorrect number of columns in csv file");
                         break;
@@ -127,7 +122,8 @@ try
                         {
                             continue;
                         }
-                        string action = fields[9];   
+                        string action = fields[9];
+                        FCTools.ShowMessage("buid " + fields[0].ToString() +" actioin :"  + action);   
                         
                         //Select query in database to retrieve current values before delete or update        
                         string sqlexistingrecordquery = "select count(*) from BusinessUnits where [Id] = @BUId" ;
@@ -246,10 +242,11 @@ try
                                 }
                                 
                                 //Query to delete record
-                                deltadeletequery = "DELETE FROM "+Table+" WHERE [Id] = @BUId";          
+                                deltadeletequery = "DELETE FROM "+Table+" WHERE [Id] = @BUId and [CountryCode] = @CountryCode";          
                                 using (SqlCommand deltadeletecommand = new SqlCommand(deltadeletequery, conn))
                                 {
                                     deltadeletecommand.Parameters.AddWithValue("@BUId", fields[0].ToString());
+                                      deltadeletecommand.Parameters.AddWithValue("@CountryCode", fields[6].ToString());
                                     deltadeletecommand.ExecuteNonQuery();
                                 }                       
                            }
@@ -263,41 +260,44 @@ try
                                 string deltadeletequerylog = "INSERT INTO BusinessUnits_Logs VALUES (@Id,@Name1,@Name2,@Name3,@Name4,@VATID1,@VATID2,@VATID3,@VATID4,@VATID5,@VATID6,@VATID7,@VATID8,@VATID9,@VATID10,@VATID11,@VATID12,@VATID13,@VATID14,@Street,@ZIP,@City,@CountryCode,@HWAER,@SNDPRN,@Region,'DELETE (for update)',@timestamp)";        
                                 using (SqlCommand deltadeleteupdatelogcommand = new SqlCommand(deltadeletequerylog, conn))
                                 {
-                                  deltadeleteupdatelogcommand.Parameters.AddWithValue("@Id", fields[0].ToString());
-                                  deltadeleteupdatelogcommand.Parameters.AddWithValue("@Name1", Name1);
-                                  deltadeleteupdatelogcommand.Parameters.AddWithValue("@Name2", Name2);
-                                  deltadeleteupdatelogcommand.Parameters.AddWithValue("@Name3", Name3);
-                                  deltadeleteupdatelogcommand.Parameters.AddWithValue("@Name4", Name4);
-                                  deltadeleteupdatelogcommand.Parameters.AddWithValue("@VATID1", VATID1);
-                                  deltadeleteupdatelogcommand.Parameters.AddWithValue("@VATID2", VATID2);
-                                  deltadeleteupdatelogcommand.Parameters.AddWithValue("@VATID3", VATID3);
-                                  deltadeleteupdatelogcommand.Parameters.AddWithValue("@VATID4", VATID4);
-                                  deltadeleteupdatelogcommand.Parameters.AddWithValue("@VATID5", VATID5);
-                                  deltadeleteupdatelogcommand.Parameters.AddWithValue("@VATID6", VATID6);
-                                  deltadeleteupdatelogcommand.Parameters.AddWithValue("@VATID7", VATID7);
-                                  deltadeleteupdatelogcommand.Parameters.AddWithValue("@VATID8", VATID8);
-                                  deltadeleteupdatelogcommand.Parameters.AddWithValue("@VATID9", VATID9);
-                                  deltadeleteupdatelogcommand.Parameters.AddWithValue("@VATID10", VATID10);
-                                  deltadeleteupdatelogcommand.Parameters.AddWithValue("@VATID11", VATID11);
-                                  deltadeleteupdatelogcommand.Parameters.AddWithValue("@VATID12", VATID12);
-                                  deltadeleteupdatelogcommand.Parameters.AddWithValue("@VATID13", VATID13);
-                                  deltadeleteupdatelogcommand.Parameters.AddWithValue("@VATID14", VATID14);
-                                  deltadeleteupdatelogcommand.Parameters.AddWithValue("@Street", Street);
-                                  deltadeleteupdatelogcommand.Parameters.AddWithValue("@ZIP", ZIP);
-                                  deltadeleteupdatelogcommand.Parameters.AddWithValue("@City", City);
-                                  deltadeleteupdatelogcommand.Parameters.AddWithValue("@CountryCode", CountryCode);
-                                  deltadeleteupdatelogcommand.Parameters.AddWithValue("@HWAER", HWAER);    
-                                  deltadeleteupdatelogcommand.Parameters.AddWithValue("@SNDPRN", SNDPRN);    
-                                  deltadeleteupdatelogcommand.Parameters.AddWithValue("@Region", Region);
-                                  deltadeleteupdatelogcommand.Parameters.AddWithValue("@timestamp", DateTime.Now);
-                                  deltadeleteupdatelogcommand.ExecuteNonQuery();
+                                   deltadeleteupdatelogcommand.Parameters.AddWithValue("@Id", fields[0].ToString());
+                                      deltadeleteupdatelogcommand.Parameters.AddWithValue("@Name1", Name1);
+                                      deltadeleteupdatelogcommand.Parameters.AddWithValue("@Name2", Name2);
+                                      deltadeleteupdatelogcommand.Parameters.AddWithValue("@Name3", Name3);
+                                      deltadeleteupdatelogcommand.Parameters.AddWithValue("@Name4", Name4);
+                                      deltadeleteupdatelogcommand.Parameters.AddWithValue("@VATID1", VATID1);
+                                      deltadeleteupdatelogcommand.Parameters.AddWithValue("@VATID2", VATID2);
+                                      deltadeleteupdatelogcommand.Parameters.AddWithValue("@VATID3", VATID3);
+                                      deltadeleteupdatelogcommand.Parameters.AddWithValue("@VATID4", VATID4);
+                                      deltadeleteupdatelogcommand.Parameters.AddWithValue("@VATID5", VATID5);
+                                      deltadeleteupdatelogcommand.Parameters.AddWithValue("@VATID6", VATID6);
+                                      deltadeleteupdatelogcommand.Parameters.AddWithValue("@VATID7", VATID7);
+                                      deltadeleteupdatelogcommand.Parameters.AddWithValue("@VATID8", VATID8);
+                                      deltadeleteupdatelogcommand.Parameters.AddWithValue("@VATID9", VATID9);
+                                      deltadeleteupdatelogcommand.Parameters.AddWithValue("@VATID10", VATID10);
+                                      deltadeleteupdatelogcommand.Parameters.AddWithValue("@VATID11", VATID11);
+                                      deltadeleteupdatelogcommand.Parameters.AddWithValue("@VATID12", VATID12);
+                                      deltadeleteupdatelogcommand.Parameters.AddWithValue("@VATID13", VATID13);
+                                      deltadeleteupdatelogcommand.Parameters.AddWithValue("@VATID14", VATID14);
+                                      deltadeleteupdatelogcommand.Parameters.AddWithValue("@Street", Street);
+                                      deltadeleteupdatelogcommand.Parameters.AddWithValue("@ZIP", ZIP);
+                                      deltadeleteupdatelogcommand.Parameters.AddWithValue("@City", City);
+                                      deltadeleteupdatelogcommand.Parameters.AddWithValue("@CountryCode", CountryCode);
+                                      deltadeleteupdatelogcommand.Parameters.AddWithValue("@HWAER", HWAER);    
+                                      deltadeleteupdatelogcommand.Parameters.AddWithValue("@SNDPRN", SNDPRN);    
+                                      deltadeleteupdatelogcommand.Parameters.AddWithValue("@Region", Region);
+                                      deltadeleteupdatelogcommand.Parameters.AddWithValue("@timestamp", DateTime.Now);
+                                      deltadeleteupdatelogcommand.ExecuteNonQuery();
+                                 
                                 }
 
                                 //Query to delete record before insert it again - for update of record
-                                deltadeletequery = "DELETE FROM "+Table+" WHERE [Id] = @BUId";
+                                deltadeletequery = "DELETE FROM "+Table+" WHERE [Id] = @BUId and [CountryCode] = @CountryCode";
                                 using (SqlCommand deltadeletcommand = new SqlCommand(deltadeletequery, conn))
                                 {
                                       deltadeletcommand.Parameters.AddWithValue("@BUId", fields[0].ToString());
+                                    
+                                      deltadeletcommand.Parameters.AddWithValue("@CountryCode", fields[6].ToString());
                                       deltadeletcommand.ExecuteNonQuery();
                                 }
                             }
@@ -305,26 +305,25 @@ try
                             string deltainsertquerylog = "INSERT INTO BusinessUnits_Logs VALUES (@Id,@Name1,@Name2,@Name3,@Name4,@VATID1,@VATID2,@VATID3,@VATID4,@VATID5,@VATID6,@VATID7,@VATID8,@VATID9,@VATID10,@VATID11,@VATID12,@VATID13,@VATID14,@Street,@ZIP,@City,@CountryCode,@HWAER,@SNDPRN,@Region,'INSERT',@timestamp)";      
                             using (SqlCommand deltainsertlogcommand = new SqlCommand(deltainsertquerylog, conn))
                             {
-   
-                                  deltainsertlogcommand.Parameters.AddWithValue("@Id", fields[0].ToString());
+                              deltainsertlogcommand.Parameters.AddWithValue("@Id", fields[0].ToString());
                                   deltainsertlogcommand.Parameters.AddWithValue("@Name1", fields[1].ToString());
-                                  deltainsertlogcommand.Parameters.AddWithValue("@Name2", Name2);
+                                  deltainsertlogcommand.Parameters.AddWithValue("@Name2", fields[10].ToString());
                                   deltainsertlogcommand.Parameters.AddWithValue("@Name3", Name3);
                                   deltainsertlogcommand.Parameters.AddWithValue("@Name4", Name4);
                                   deltainsertlogcommand.Parameters.AddWithValue("@VATID1", fields[2].ToString());
-                                  deltainsertlogcommand.Parameters.AddWithValue("@VATID2", VATID2);
-                                  deltainsertlogcommand.Parameters.AddWithValue("@VATID3", VATID3);
-                                  deltainsertlogcommand.Parameters.AddWithValue("@VATID4", VATID4);
-                                  deltainsertlogcommand.Parameters.AddWithValue("@VATID5", VATID5);
-                                  deltainsertlogcommand.Parameters.AddWithValue("@VATID6", VATID6);
-                                  deltainsertlogcommand.Parameters.AddWithValue("@VATID7", VATID7);
-                                  deltainsertlogcommand.Parameters.AddWithValue("@VATID8", VATID8);
-                                  deltainsertlogcommand.Parameters.AddWithValue("@VATID9", VATID9);
-                                  deltainsertlogcommand.Parameters.AddWithValue("@VATID10", VATID10);
-                                  deltainsertlogcommand.Parameters.AddWithValue("@VATID11", VATID11);
-                                  deltainsertlogcommand.Parameters.AddWithValue("@VATID12", VATID12);
-                                  deltainsertlogcommand.Parameters.AddWithValue("@VATID13", VATID13);
-                                  deltainsertlogcommand.Parameters.AddWithValue("@VATID14", VATID14);
+                                  deltainsertlogcommand.Parameters.AddWithValue("@VATID2", fields[11].ToString());
+                                  deltainsertlogcommand.Parameters.AddWithValue("@VATID3", fields[12].ToString());
+                                  deltainsertlogcommand.Parameters.AddWithValue("@VATID4", fields[13].ToString());
+                                  deltainsertlogcommand.Parameters.AddWithValue("@VATID5", fields[14].ToString());
+                                  deltainsertlogcommand.Parameters.AddWithValue("@VATID6", fields[15].ToString());
+                                  deltainsertlogcommand.Parameters.AddWithValue("@VATID7", fields[16].ToString());
+                                  deltainsertlogcommand.Parameters.AddWithValue("@VATID8", fields[17].ToString());
+                                  deltainsertlogcommand.Parameters.AddWithValue("@VATID9", fields[18].ToString());
+                                  deltainsertlogcommand.Parameters.AddWithValue("@VATID10", fields[19].ToString());
+                                  deltainsertlogcommand.Parameters.AddWithValue("@VATID11", fields[20].ToString());
+                                  deltainsertlogcommand.Parameters.AddWithValue("@VATID12", fields[21].ToString());
+                                  deltainsertlogcommand.Parameters.AddWithValue("@VATID13", fields[22].ToString());
+                                  deltainsertlogcommand.Parameters.AddWithValue("@VATID14", fields[23].ToString());
                                   deltainsertlogcommand.Parameters.AddWithValue("@Street", fields[3].ToString());
                                   deltainsertlogcommand.Parameters.AddWithValue("@ZIP", fields[4].ToString());
                                   deltainsertlogcommand.Parameters.AddWithValue("@City", fields[5].ToString());
@@ -334,7 +333,6 @@ try
                                   deltainsertlogcommand.Parameters.AddWithValue("@Region", fields[6].ToString());
                                   deltainsertlogcommand.Parameters.AddWithValue("@timestamp", DateTime.Now);
                                   deltainsertlogcommand.ExecuteNonQuery();
-
                             }
                             //Query to insert record 
                             deltainsertquery = "INSERT INTO "+Table+" VALUES (@Id,@Name1,@Name2,@Name3,@Name4,@VATID1,@VATID2,@VATID3,@VATID4,@VATID5,@VATID6,@VATID7,@VATID8,@VATID9,@VATID10,@VATID11,@VATID12,@VATID13,@VATID14,@Street,@ZIP,@City,@CountryCode,@HWAER,@SNDPRN,@Region)";  
@@ -343,23 +341,23 @@ try
                             {
                                   deltainsertcommand.Parameters.AddWithValue("@Id", fields[0].ToString());
                                   deltainsertcommand.Parameters.AddWithValue("@Name1", fields[1].ToString());
-                                  deltainsertcommand.Parameters.AddWithValue("@Name2", Name2);
+                                 deltainsertcommand.Parameters.AddWithValue("@Name2", fields[10].ToString());
                                   deltainsertcommand.Parameters.AddWithValue("@Name3", Name3);
                                   deltainsertcommand.Parameters.AddWithValue("@Name4", Name4);
                                   deltainsertcommand.Parameters.AddWithValue("@VATID1", fields[2].ToString());
-                                  deltainsertcommand.Parameters.AddWithValue("@VATID2", VATID2);
-                                  deltainsertcommand.Parameters.AddWithValue("@VATID3", VATID3);
-                                  deltainsertcommand.Parameters.AddWithValue("@VATID4", VATID4);
-                                  deltainsertcommand.Parameters.AddWithValue("@VATID5", VATID5);
-                                  deltainsertcommand.Parameters.AddWithValue("@VATID6", VATID6);
-                                  deltainsertcommand.Parameters.AddWithValue("@VATID7", VATID7);
-                                  deltainsertcommand.Parameters.AddWithValue("@VATID8", VATID8);
-                                  deltainsertcommand.Parameters.AddWithValue("@VATID9", VATID9);
-                                  deltainsertcommand.Parameters.AddWithValue("@VATID10", VATID10);
-                                  deltainsertcommand.Parameters.AddWithValue("@VATID11", VATID11);
-                                  deltainsertcommand.Parameters.AddWithValue("@VATID12", VATID12);
-                                  deltainsertcommand.Parameters.AddWithValue("@VATID13", VATID13);
-                                  deltainsertcommand.Parameters.AddWithValue("@VATID14", VATID14);
+                                 deltainsertcommand.Parameters.AddWithValue("@VATID2", fields[11].ToString());
+                                  deltainsertcommand.Parameters.AddWithValue("@VATID3", fields[12].ToString());
+                                  deltainsertcommand.Parameters.AddWithValue("@VATID4", fields[13].ToString());
+                                  deltainsertcommand.Parameters.AddWithValue("@VATID5", fields[14].ToString());
+                                  deltainsertcommand.Parameters.AddWithValue("@VATID6", fields[15].ToString());
+                                  deltainsertcommand.Parameters.AddWithValue("@VATID7", fields[16].ToString());
+                                  deltainsertcommand.Parameters.AddWithValue("@VATID8", fields[17].ToString());
+                                  deltainsertcommand.Parameters.AddWithValue("@VATID9", fields[18].ToString());
+                                  deltainsertcommand.Parameters.AddWithValue("@VATID10", fields[19].ToString());
+                                  deltainsertcommand.Parameters.AddWithValue("@VATID11", fields[20].ToString());
+                                  deltainsertcommand.Parameters.AddWithValue("@VATID12", fields[21].ToString());
+                                  deltainsertcommand.Parameters.AddWithValue("@VATID13", fields[22].ToString());
+                                  deltainsertcommand.Parameters.AddWithValue("@VATID14", fields[23].ToString());
                                   deltainsertcommand.Parameters.AddWithValue("@Street", fields[3].ToString());
                                   deltainsertcommand.Parameters.AddWithValue("@ZIP", fields[4].ToString());
                                   deltainsertcommand.Parameters.AddWithValue("@City", fields[5].ToString());
