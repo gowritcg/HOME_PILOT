@@ -111,7 +111,7 @@ try
                     //line = line.Replace("\",\",\"","\",\"");
                     
                     fields = parser.ReadFields();
-                    if (fields.Length != 24)
+                    if (fields.Length != 25)
                     {
                         FCTools.ShowMessage("Incorrect number of columns in csv file");
                         break;
